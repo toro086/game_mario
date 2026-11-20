@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HTML Quest - Super Mario Style Learning Game</title>
+    <!-- Tailwind CSS for UI overlays -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        .pixel-font {
+            font-family: 'Press Start 2P', cursive;
+        }
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            image-rendering: pixelated;
+        }
+        /* Touch Controls Overlay */
+        .touch-btn {
+            background: rgba(15, 23, 42, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(4px);
+        }
+        .touch-btn:active {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body class="relative w-full h-full overflow-hidden">
+
+    <!-- Canvas Game Utama Fullscreen -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Overlay Floating HUD Header -->
+    <div class="absolute top-3 left-3 right-3 pointer-events-none flex justify-between items-start z-10">
+        <!-- Stats Bar Kiri -->
+        <div class="bg-slate-900/80 backdrop-blur-md border-2 border-slate-700/80 rounded-xl p-2 sm:p-3 flex flex-wrap items-center gap-3 text-xs sm:text-sm pixel-font text-yellow-400 shadow-xl pointer-events-auto">
+            <div class="flex items-center gap-1.5">
+                <span class="text-slate-400">SKOR:</span>
+                <span id="hud-score" class="text-white">000000</span>
+            </div>
+            <div class="flex items-center gap-1.5 border-l border-slate-700 pl-3">
+                <span>❤️</span>
+                <span id="hud-lives" class="text-red-400">3</span>
+            </div>
+            <div class="flex items-center gap-1.5 border-l border-slate-700 pl-3">
+                <span class="text-slate-400">LV:</span>
+                <span id="hud-level" class="text-cyan-400">1/4</span>
+            </div>
+            <!-- Tombol Pilih Level di HUD -->
+            <button id="btn-hud-menu" class="ml-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 rounded-lg px-2.5 py-1 text-[10px] sm:text-xs transition cursor-pointer">
+                🎮 Pilih Level
+            </button>
+        </div>
+
+        <!-- Judul Topik Kanan -->
+        <div class="bg-slate-900/80 backdrop-blur-md border-2 border-slate-700/80 rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm pixel-font text-emerald-400 shadow-xl pointer-events-auto max-w-[200px] sm:max-w-xs text-right truncate" id="hud-topic">
+            Sejarah HTML
+        </div>
+    </div>
+
+    <!-- Level Selection & Start Screen Overlay -->
+    <div id="start-screen" class="absolute inset-0 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-4 sm:p-6 text-center z-30 overflow-y-auto">
+        <h1 class="pixel-font text-3xl sm:text-5xl text-yellow-400 mb-2 animate-bounce drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">HTML QUEST</h1>
+        <p class="text-slate-300 text-xs sm:text-base max-w-xl mb-6 leading-relaxed font-medium">
+            Pilih level yang ingin kamu mainkan! Setiap level berisi materi & kuis HTML interaktif.
+        </p>
+
+        <!-- Grid Card Pemilihan Level -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 max-w-3xl w-full mb-6">
+            <!-- Level 1 Card -->
+            <div class="level-card bg-slate-900 hover:bg-slate-800 border-2 border-sky-500/80 hover:border-sky-400 rounded-xl p-4 text-left transition cursor-pointer shadow-lg transform hover:-translate-y-1" data-level="0">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="pixel-font text-xs text-sky-400">LEVEL 1</span>
+                    <span class="px-2 py-0.5 text-[10px] font-semibold bg-sky-500/20 text-sky-300 rounded border border-sky-500/40">Mudah</span>
+                </div>
+                <h3 class="font-bold text-white text-base mb-1">📜 Sejarah Perkembangan HTML</h3>
+                <p class="text-xs text-slate-400">Penemu HTML, CERN, W3C, dan evolusi dari HTML1 ke HTML5.</p>
+            </div>
+
+            <!-- Level 2 Card -->
+            <div class="level-card bg-slate-900 hover:bg-slate-800 border-2 border-amber-500/80 hover:border-amber-400 rounded-xl p-4 text-left transition cursor-pointer shadow-lg transform hover:-translate-y-1" data-level="1">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="pixel-font text-xs text-amber-400">LEVEL 2</span>
+                    <span class="px-2 py-0.5 text-[10px] font-semibold bg-amber-500/20 text-amber-300 rounded border border-amber-500/40">Sedang</span>
+                </div>
+                <h3 class="font-bold text-white text-base mb-1">⚙️ Cara Kerja HTML</h3>
+                <p class="text-xs text-slate-400">Ekstensi file, Web Browser, Client-Server & DOM Tree.</p>
+            </div>
+
+            <!-- Level 3 Card -->
+            <div class="level-card bg-slate-900 hover:bg-slate-800 border-2 border-pink-500/80 hover:border-pink-400 rounded-xl p-4 text-left transition cursor-pointer shadow-lg transform hover:-translate-y-1" data-level="2">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="pixel-font text-xs text-pink-400">LEVEL 3</span>
+                    <span class="px-2 py-0.5 text-[10px] font-semibold bg-pink-500/20 text-pink-300 rounded border border-pink-500/40">Agak Susah</span>
+                </div>
+                <h3 class="font-bold text-white text-base mb-1">🏷️ Tag HTML Utama</h3>
+                <p class="text-xs text-slate-400">Penggunaan tag h1-h6, p, a (anchor), dan img + rintangan duri!</p>
+            </div>
+
+            <!-- Level 4 Card -->
+            <div class="level-card bg-slate-900 hover:bg-slate-800 border-2 border-indigo-500/80 hover:border-indigo-400 rounded-xl p-4 text-left transition cursor-pointer shadow-lg transform hover:-translate-y-1" data-level="3">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="pixel-font text-xs text-indigo-400">LEVEL 4</span>
+                    <span class="px-2 py-0.5 text-[10px] font-semibold bg-red-500/20 text-red-300 rounded border border-red-500/40">Paling Susah 👾</span>
+                </div>
+                <h3 class="font-bold text-white text-base mb-1">🔧 Atribut HTML + Musuh Bug</h3>
+                <p class="text-xs text-slate-400">Atribut href, src, alt & class. Hati-hati dengan musuh Bug!</p>
+            </div>
+        </div>
+
+        <div class="text-xs text-slate-400 flex flex-wrap justify-center gap-4 bg-slate-900/60 p-3 rounded-lg border border-slate-800">
+            <span>⬅️ ➡️ / A D : Jalan</span>
+            <span>⬆️ / W / Space : Lompat</span>
+        </div>
+    </div>
+
+    <!-- Quiz & Info Modal Overlay -->
+    <div id="modal-overlay" class="absolute inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-40 hidden">
+        <div class="bg-slate-900 border-4 border-yellow-400 rounded-2xl p-6 max-w-xl w-full text-white shadow-2xl relative animate-in fade-in zoom-in duration-200">
+            <div class="flex items-center gap-3 mb-4 border-b border-slate-800 pb-3">
+                <span class="text-3xl" id="modal-icon">📖</span>
+                <h3 class="pixel-font text-yellow-400 text-sm sm:text-base leading-snug" id="modal-title">MATERI & SOAL KUIS HTML</h3>
+            </div>
+            <div id="modal-body" class="text-slate-200 text-sm sm:text-base space-y-4 mb-6 leading-relaxed">
+                <!-- Question and options inserted dynamically -->
+            </div>
+            <div id="modal-actions" class="flex justify-end gap-3 pt-2">
+                <!-- Action Buttons inserted dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Overlay -->
+    <div id="gameover-screen" class="absolute inset-0 bg-red-950/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-50 hidden">
+        <h2 class="pixel-font text-4xl sm:text-6xl text-red-500 mb-4 animate-pulse">GAME OVER</h2>
+        <p class="text-slate-300 mb-8 text-base sm:text-lg" id="gameover-reason">Nyawa kamu telah habis!</p>
+        <div class="flex flex-wrap gap-4 justify-center">
+            <button id="btn-restart" class="pixel-font bg-yellow-400 hover:bg-yellow-300 text-slate-950 px-6 py-4 rounded-xl border-b-4 border-yellow-600 active:border-b-0 cursor-pointer shadow-lg hover:scale-105 transition text-sm">
+                ULANGI LEVEL 🔄
+            </button>
+            <button id="btn-gameover-menu" class="pixel-font bg-slate-700 hover:bg-slate-600 text-white px-6 py-4 rounded-xl border-b-4 border-slate-900 active:border-b-0 cursor-pointer shadow-lg hover:scale-105 transition text-sm">
+                MENU UTAMA 🏠
+            </button>
+        </div>
+    </div>
+
+    <!-- Level Complete / Victory Overlay -->
+    <div id="victory-screen" class="absolute inset-0 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-50 hidden">
+        <h2 class="pixel-font text-3xl sm:text-5xl text-yellow-400 mb-3" id="victory-title">LEVEL SELESAI!</h2>
+        <p class="text-slate-300 mb-6 text-base sm:text-lg" id="victory-desc">Kamu berhasil menguasai materi ini!</p>
+        <div class="bg-slate-900 p-5 rounded-xl mb-8 border border-slate-800 text-left w-full max-w-md shadow-inner">
+            <div class="pixel-font text-xs text-slate-400 mb-3">RINGKASAN SKOR:</div>
+            <div class="flex justify-between text-base sm:text-lg py-1 border-b border-slate-800">
+                <span>Total Skor Game:</span>
+                <span id="summary-score" class="text-yellow-400 font-bold pixel-font">0</span>
+            </div>
+        </div>
+        <div class="flex flex-wrap gap-4 justify-center">
+            <button id="btn-next-level" class="pixel-font bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-6 py-4 rounded-xl border-b-4 border-emerald-700 active:border-b-0 cursor-pointer shadow-lg hover:scale-105 transition text-sm">
+                LANJUT LEVEL BERIKUTNYA ➡️
+            </button>
+            <button id="btn-victory-menu" class="pixel-font bg-slate-700 hover:bg-slate-600 text-white px-6 py-4 rounded-xl border-b-4 border-slate-900 active:border-b-0 cursor-pointer shadow-lg hover:scale-105 transition text-sm">
+                MENU UTAMA 🏠
+            </button>
+        </div>
+    </div>
+
+    <!-- Mobile Touch Controls Overlay (Bottom corners) -->
+    <div class="absolute bottom-4 left-4 right-4 flex justify-between items-end pointer-events-none sm:hidden z-20">
+        <!-- D-Pad Left Right -->
+        <div class="flex gap-3 pointer-events-auto">
+            <button id="touch-left" class="touch-btn w-16 h-16 rounded-2xl text-2xl flex items-center justify-center text-white active:bg-white/30">⬅️</button>
+            <button id="touch-right" class="touch-btn w-16 h-16 rounded-2xl text-2xl flex items-center justify-center text-white active:bg-white/30">➡️</button>
+        </div>
+        <!-- Jump Button -->
+        <div class="pointer-events-auto">
+            <button id="touch-jump" class="touch-btn w-20 h-20 rounded-2xl text-3xl flex items-center justify-center text-white bg-yellow-500/30 border-yellow-400 active:bg-yellow-500/60 shadow-lg">🚀</button>
+        </div>
+    </div>
+
+    <!-- Audio Synthesizer (Web Audio API) -->
+    <script>
+        const AudioFX = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            },
+            playCoin() {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(987.77, this.ctx.currentTime);
+                osc.frequency.setValueAtTime(1318.51, this.ctx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.3);
+            },
+            playJump() {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(400, this.ctx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.15);
+            },
+            playHurt() {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, this.ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(60, this.ctx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.2);
+            },
+            playWin() {
+                if (!this.ctx) return;
+                const notes = [440, 554.37, 659.25, 880];
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.1);
+                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime + idx * 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + idx * 0.1 + 0.25);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(this.ctx.currentTime + idx * 0.1);
+                    osc.stop(this.ctx.currentTime + idx * 0.1 + 0.25);
+                });
+            }
+        };
+    </script>
+
+    <!-- Game Engine Implementation -->
+    <script>
+        const GRAVITY = 0.55;
+
+        // Level Data with Pure Quiz Questions & Summaries
+        const LEVEL_DATA = [
+            {
+                level: 1,
+                title: "Sejarah Perkembangan HTML",
+                difficulty: "Mudah",
+                bgGradient: ['#0284c7', '#7dd3fc'],
+                hasEnemies: false,
+                hasMovingPlatforms: false,
+                hasSpikes: false,
+                quizzes: [
+                    {
+                        x: 350, y: 300,
+                        material: "<strong>Ringkasan Materi:</strong> HTML pertama kali dikembangkan oleh fisikawan bernama <em>Tim Berners-Lee</em> di lembaga penelitian CERN pada tahun 1991 untuk berbagi dokumen pengetahuan.",
+                        question: "Siapakah ilmuwan penemu bahasa HTML pada tahun 1991?",
+                        options: [
+                            "Alan Turing",
+                            "Tim Berners-Lee",
+                            "Bill Gates",
+                            "Mark Zuckerberg"
+                        ],
+                        answer: 1,
+                        explanation: "Tim Berners-Lee menciptakan HTML pada tahun 1991 di CERN untuk mempermudah berbagi dokumen sains."
+                    },
+                    {
+                        x: 900, y: 220,
+                        material: "<strong>Ringkasan Materi:</strong> Istilah <em>HyperText</em> mengacu pada teks yang terhubung dengan dokumen lain melalui link, sedangkan <em>Markup Language</em> adalah bahasa dengan struktur tanda (tag).",
+                        question: "Apakah kepanjangan resmi dari singkatan HTML?",
+                        options: [
+                            "HyperText Markup Language",
+                            "HighText Machine Language",
+                            "Hyperlink Text Mode Language",
+                            "Home Tool Markup Language"
+                        ],
+                        answer: 0,
+                        explanation: "HTML singkatan dari HyperText Markup Language, bahasa standar untuk membuat halaman web."
+                    },
+                    {
+                        x: 1450, y: 260,
+                        material: "<strong>Ringkasan Materi:</strong> Konsorsium Web Internasional (<em>World Wide Web Consortium / W3C</em>) adalah badan yang bertugas memelihara dan menerbitkan standar spesifikasi resmi dari HTML.",
+                        question: "Organisasi standar internasional yang mengelola dan mengembangkan standar spesifikasi HTML adalah...",
+                        options: [
+                            "Google Consortium",
+                            "IEEE Standard",
+                            "W3C (World Wide Web Consortium)",
+                            "ISO Web Team"
+                        ],
+                        answer: 2,
+                        explanation: "W3C (World Wide Web Consortium) bertugas menjaga dan menetapkan standar resmi HTML."
+                    }
+                ]
+            },
+            {
+                level: 2,
+                title: "Cara Kerja HTML",
+                difficulty: "Sedang",
+                bgGradient: ['#d97706', '#fef08a'],
+                hasEnemies: false,
+                hasMovingPlatforms: true,
+                hasSpikes: false,
+                quizzes: [
+                    {
+                        x: 350, y: 300,
+                        material: "<strong>Ringkasan Materi:</strong> Dokumen HTML disimpan sebagai teks biasa dengan akhiran ekstensi khusus agar sistem operasi dan browser mengenali berkas sebagai kode web.",
+                        question: "Format ekstensi berkas standar saat menyimpan dokumen HTML adalah...",
+                        options: [
+                            ".doc atau .txt",
+                            ".html atau .htm",
+                            ".js atau .css",
+                            ".png atau .jpg"
+                        ],
+                        answer: 1,
+                        explanation: "File HTML wajib disimpan dengan ekstensi akhiran .html (atau .htm)."
+                    },
+                    {
+                        x: 950, y: 220,
+                        material: "<strong>Ringkasan Materi:</strong> Perangkat lunak <em>Web Browser</em> bertugas membaca perintah markup dalam file HTML, lalu merendernya menjadi tampilan halaman web interaktif.",
+                        question: "Aplikasi yang bertugas menerjemahkan (parsing) perintah kode HTML menjadi visual web adalah...",
+                        options: [
+                            "Web Server",
+                            "Database Engine",
+                            "Web Browser (Chrome, Firefox, Safari)",
+                            "Code Editor (VS Code)"
+                        ],
+                        answer: 2,
+                        explanation: "Web Browser berfungsi membaca baris dokumen HTML dari server lalu merendernya ke pengguna."
+                    },
+                    {
+                        x: 1550, y: 280,
+                        material: "<strong>Ringkasan Materi:</strong> Saat file HTML dimuat, browser membangun struktur berhierarki bernama <em>DOM (Document Object Model)</em> yang merepresentasikan setiap elemen sebagai objek.",
+                        question: "Struktur pohon objek bertingkat yang dibuat browser untuk mewakili elemen-elemen HTML disebut...",
+                        options: [
+                            "DOM (Document Object Model)",
+                            "CSS Grid Model",
+                            "HTTP Request Pipeline",
+                            "SQL Database Table"
+                        ],
+                        answer: 0,
+                        explanation: "Browser membangun pohon DOM (Document Object Model) untuk mengelompokkan elemen HTML."
+                    }
+                ]
+            },
+            {
+                level: 3,
+                title: "Tag Tag Utama HTML",
+                difficulty: "Agak Susah",
+                bgGradient: ['#db2777', '#fbcfe8'],
+                hasEnemies: false,
+                hasMovingPlatforms: true,
+                hasSpikes: true,
+                quizzes: [
+                    {
+                        x: 380, y: 300,
+                        material: "<strong>Ringkasan Materi:</strong> Elemen Heading di HTML terbagi dari tingkat <code>&lt;h1&gt;</code> (paling besar/penting) hingga <code>&lt;h6&gt;</code> (paling kecil).",
+                        question: "Tag mana yang digunakan untuk mendefinisikan Judul Utama paling penting dalam sebuah dokumen HTML?",
+                        options: [
+                            "<title>",
+                            "<h1>",
+                            "<heading>",
+                            "<p>"
+                        ],
+                        answer: 1,
+                        explanation: "Tag <h1> digunakan untuk Heading/Judul Utama berukuran paling besar dan penting."
+                    },
+                    {
+                        x: 900, y: 220,
+                        material: "<strong>Ringkasan Materi:</strong> Elemen <em>Anchor</em> dipasangkan dengan huruf <code>&lt;a&gt;</code> untuk menghubungkan satu dokumen HTML dengan halaman web lainnya.",
+                        question: "Tag yang digunakan untuk membuat tautan/hyperlink menuju ke halaman lain adalah...",
+                        options: [
+                            "<link>",
+                            "<a>",
+                            "<href>",
+                            "<url>"
+                        ],
+                        answer: 1,
+                        explanation: "Tag <a> (Anchor) digunakan untuk membuat link atau pranala tautan."
+                    },
+                    {
+                        x: 1450, y: 260,
+                        material: "<strong>Ringkasan Materi:</strong> Elemen <code>&lt;img&gt;</code> merupakan <em>self-closing tag</em> (tanpa penutup) yang berguna memasukkan media gambar visual ke halaman web.",
+                        question: "Tag mana yang digunakan untuk menyisipkan gambar ke dalam halaman web?",
+                        options: [
+                            "<image>",
+                            "<img>",
+                            "<picture>",
+                            "<photo>"
+                        ],
+                        answer: 1,
+                        explanation: "Tag <img> adalah tag khusus untuk menampilkan file gambar pada web."
+                    }
+                ]
+            },
+            {
+                level: 4,
+                title: "Atribut Atribut HTML",
+                difficulty: "Paling Susah (Musuh Bug!)",
+                bgGradient: ['#4f46e5', '#c7d2fe'],
+                hasEnemies: true,
+                hasMovingPlatforms: true,
+                hasSpikes: true,
+                quizzes: [
+                    {
+                        x: 400, y: 300,
+                        material: "<strong>Ringkasan Materi:</strong> Atribut memberikan informasi atau konfigurasi tambahan pada tag. Tag <code>&lt;a&gt;</code> membutuhkan atribut <code>href</code> untuk menentukan tautan URL.",
+                        question: "Atribut pada tag <a> yang bertugas menentukan alamat URL tujuan dari link adalah...",
+                        options: [
+                            "src",
+                            "target",
+                            "href",
+                            "class"
+                        ],
+                        answer: 2,
+                        explanation: "Atribut 'href' (Hypertext Reference) menyimpan tautan/alamat halaman yang akan dituju."
+                    },
+                    {
+                        x: 950, y: 220,
+                        material: "<strong>Ringkasan Materi:</strong> Atribut <code>alt</code> (Alternative Text) pada gambar dibaca oleh screen reader untuk aksesibilitas dan ditampilkan jika gambar gagal dimuat.",
+                        question: "Fungsi utama dari atribut 'alt' pada tag elemen <img> adalah...",
+                        options: [
+                            "Mengubah ukuran resolusi gambar",
+                            "Menampilkan teks deskripsi alternatif jika gambar gagal dimuat",
+                            "Memberikan animasi pergerakan gambar",
+                            "Menentukan format ekstensi file gambar"
+                        ],
+                        answer: 1,
+                        explanation: "Atribut 'alt' (Alternative Text) menampilkan teks penjelasan jika file gambar rusak/gagal dimuat."
+                    },
+                    {
+                        x: 1500, y: 280,
+                        material: "<strong>Ringkasan Materi:</strong> Atribut <code>src</code> (Source) bertugas memberi tahu browser mengenai jalur direktori (path) lokasi berkas gambar yang akan diambil.",
+                        question: "Atribut mana yang menentukan lokasi berkas/sumber gambar pada tag <img>?",
+                        options: [
+                            "url",
+                            "path",
+                            "src",
+                            "href"
+                        ],
+                        answer: 2,
+                        explanation: "Atribut 'src' (Source) digunakan untuk memuat berkas atau path lokasi file gambar."
+                    }
+                ]
+            }
+        ];
+
+        class FullscreenGame {
+            constructor() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                
+                // State Init
+                this.currentLevelIdx = 0;
+                this.score = 0;
+                this.lives = 3;
+                this.gameState = 'START_MENU'; // START_MENU, PLAYING, PAUSED_MODAL, GAMEOVER, VICTORY
+                
+                this.keys = { left: false, right: false, up: false };
+
+                // Virtual Canvas standard height for consistent scaling
+                this.virtualHeight = 500;
+                this.scaleFactor = 1;
+                this.levelWidth = 2300;
+
+                // Initialize game entity containers to avoid undefined errors before level load
+                this.platforms = [];
+                this.spikes = [];
+                this.questionBlocks = [];
+                this.enemies = [];
+                this.finishFlag = { x: 2150, y: 240, width: 35, height: 180 };
+
+                // Player Definition
+                this.player = {
+                    x: 60,
+                    y: 300,
+                    width: 34,
+                    height: 44,
+                    vx: 0,
+                    vy: 0,
+                    speed: 5.2,
+                    jumpForce: -12.5,
+                    isGrounded: false,
+                    facing: 'right',
+                    invulnerableTimer: 0
+                };
+
+                this.cameraX = 0;
+
+                // Setup Canvas Resize Listener
+                this.handleResize();
+                window.addEventListener('resize', () => this.handleResize());
+
+                this.bindEvents();
+            }
+
+            handleResize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+                this.scaleFactor = this.canvas.height / this.virtualHeight;
+            }
+
+            openLevelSelectMenu() {
+                this.gameState = 'START_MENU';
+                document.getElementById('start-screen').classList.remove('hidden');
+                document.getElementById('gameover-screen').classList.add('hidden');
+                document.getElementById('victory-screen').classList.add('hidden');
+                document.getElementById('modal-overlay').classList.add('hidden');
+            }
+
+            startLevel(idx) {
+                AudioFX.init();
+                this.currentLevelIdx = idx;
+                this.lives = 3;
+                this.loadLevel(this.currentLevelIdx);
+                document.getElementById('start-screen').classList.add('hidden');
+                document.getElementById('gameover-screen').classList.add('hidden');
+                document.getElementById('victory-screen').classList.add('hidden');
+                this.gameState = 'PLAYING';
+            }
+
+            loadLevel(idx) {
+                const data = LEVEL_DATA[idx];
+                this.cameraX = 0;
+                this.player.x = 80;
+                this.player.y = 300;
+                this.player.vx = 0;
+                this.player.vy = 0;
+
+                // Construct World Layout
+                this.platforms = [
+                    { x: 0, y: 420, width: 700, height: 80 },
+                    { x: 800, y: 420, width: 600, height: 80 },
+                    { x: 1500, y: 420, width: 800, height: 80 }
+                ];
+
+                // Upper platforms
+                this.platforms.push(
+                    { x: 300, y: 310, width: 140, height: 22 },
+                    { x: 520, y: 240, width: 150, height: 22 },
+                    { x: 850, y: 300, width: 140, height: 22 },
+                    { x: 1100, y: 220, width: 140, height: 22 },
+                    { x: 1550, y: 310, width: 160, height: 22 },
+                    { x: 1850, y: 240, width: 140, height: 22 }
+                );
+
+                // Moving platforms for Level 2+
+                if (data.hasMovingPlatforms) {
+                    this.platforms.push({
+                        x: 690, y: 370, width: 100, height: 20,
+                        isMoving: true, minX: 680, maxX: 810, speed: 1.8, dir: 1
+                    });
+                    this.platforms.push({
+                        x: 1390, y: 350, width: 100, height: 20,
+                        isMoving: true, minX: 1380, maxX: 1510, speed: 2.2, dir: 1
+                    });
+                }
+
+                // Spikes for Level 3+
+                this.spikes = [];
+                if (data.hasSpikes) {
+                    this.spikes = [
+                        { x: 850, y: 398, width: 60, height: 22 },
+                        { x: 1150, y: 198, width: 40, height: 22 },
+                        { x: 1650, y: 398, width: 80, height: 22 }
+                    ];
+                }
+
+                // Question Blocks ONLY (Direct Quiz)
+                this.questionBlocks = [];
+                data.quizzes.forEach((quiz, i) => {
+                    this.questionBlocks.push({
+                        id: 'quiz_' + i,
+                        x: quiz.x,
+                        y: quiz.y,
+                        width: 36,
+                        height: 36,
+                        hit: false,
+                        data: quiz
+                    });
+                });
+
+                // Enemies (Level 4 Bug Patrol)
+                this.enemies = [];
+                if (data.hasEnemies) {
+                    this.enemies = [
+                        { x: 450, y: 388, width: 32, height: 32, speed: 2.2, minX: 320, maxX: 650, dir: 1 },
+                        { x: 920, y: 268, width: 32, height: 32, speed: 2.8, minX: 860, maxX: 980, dir: 1 },
+                        { x: 1650, y: 388, width: 32, height: 32, speed: 3.2, minX: 1520, maxX: 1800, dir: -1 }
+                    ];
+                }
+
+                // Finish Flag Pole
+                this.finishFlag = { x: 2150, y: 240, width: 35, height: 180 };
+
+                this.updateHUD();
+            }
+
+            bindEvents() {
+                // Keyboard inputs
+                window.addEventListener('keydown', (e) => {
+                    if (this.gameState !== 'PLAYING') return;
+                    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') this.keys.left = true;
+                    if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') this.keys.right = true;
+                    if (e.key === 'ArrowUp' || e.key === ' ' || e.key === 'w' || e.key === 'W') {
+                        if (!this.keys.up && this.player.isGrounded) {
+                            this.player.vy = this.player.jumpForce;
+                            this.player.isGrounded = false;
+                            AudioFX.playJump();
+                        }
+                        this.keys.up = true;
+                    }
+                });
+
+                window.addEventListener('keyup', (e) => {
+                    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') this.keys.left = false;
+                    if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') this.keys.right = false;
+                    if (e.key === 'ArrowUp' || e.key === ' ' || e.key === 'w' || e.key === 'W') this.keys.up = false;
+                });
+
+                // Level Cards Click Events
+                document.querySelectorAll('.level-card').forEach(card => {
+                    card.addEventListener('click', (e) => {
+                        const levelIdx = parseInt(card.getAttribute('data-level'));
+                        this.startLevel(levelIdx);
+                    });
+                });
+
+                // HUD Menu button click
+                document.getElementById('btn-hud-menu').addEventListener('click', () => {
+                    this.openLevelSelectMenu();
+                });
+
+                document.getElementById('btn-restart').addEventListener('click', () => {
+                    document.getElementById('gameover-screen').classList.add('hidden');
+                    this.startLevel(this.currentLevelIdx);
+                });
+
+                document.getElementById('btn-gameover-menu').addEventListener('click', () => {
+                    this.openLevelSelectMenu();
+                });
+
+                document.getElementById('btn-victory-menu').addEventListener('click', () => {
+                    this.openLevelSelectMenu();
+                });
+
+                document.getElementById('btn-next-level').addEventListener('click', () => {
+                    document.getElementById('victory-screen').classList.add('hidden');
+                    if (this.currentLevelIdx < LEVEL_DATA.length - 1) {
+                        this.startLevel(this.currentLevelIdx + 1);
+                    } else {
+                        this.openLevelSelectMenu();
+                    }
+                });
+
+                // Touch Controls setup
+                const bindTouchBtn = (id, keyName) => {
+                    const btn = document.getElementById(id);
+                    btn.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        AudioFX.init();
+                        if (keyName === 'up' && this.player.isGrounded && this.gameState === 'PLAYING') {
+                            this.player.vy = this.player.jumpForce;
+                            this.player.isGrounded = false;
+                            AudioFX.playJump();
+                        }
+                        this.keys[keyName] = true;
+                    });
+                    btn.addEventListener('touchend', (e) => {
+                        e.preventDefault();
+                        this.keys[keyName] = false;
+                    });
+                };
+
+                bindTouchBtn('touch-left', 'left');
+                bindTouchBtn('touch-right', 'right');
+                bindTouchBtn('touch-jump', 'up');
+            }
+
+            updateHUD() {
+                const data = LEVEL_DATA[this.currentLevelIdx];
+                document.getElementById('hud-score').innerText = String(this.score).padStart(6, '0');
+                document.getElementById('hud-lives').innerText = this.lives;
+                document.getElementById('hud-level').innerText = `${data.level}/4`;
+                document.getElementById('hud-topic').innerText = data.title;
+            }
+
+            openQuizModal(data) {
+                this.gameState = 'PAUSED_MODAL';
+                const overlay = document.getElementById('modal-overlay');
+                const titleEl = document.getElementById('modal-title');
+                const bodyEl = document.getElementById('modal-body');
+                const actionsEl = document.getElementById('modal-actions');
+                const iconEl = document.getElementById('modal-icon');
+
+                actionsEl.innerHTML = '';
+                iconEl.innerText = '📖';
+                titleEl.innerText = "MATERI & SOAL KUIS HTML";
+
+                let html = `
+                    <div class="p-3.5 bg-sky-950/80 border border-sky-500/50 rounded-xl text-sky-200 text-xs sm:text-sm leading-relaxed mb-4">
+                        ${data.material}
+                    </div>
+                    <p class="font-semibold mb-3 text-yellow-300 text-sm sm:text-base leading-relaxed">${data.question}</p>
+                    <div class="space-y-2.5">
+                `;
+                data.options.forEach((opt, idx) => {
+                    html += `
+                        <button class="quiz-opt-btn w-full text-left p-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 transition text-sm font-medium cursor-pointer flex items-start gap-3" data-idx="${idx}">
+                            <span class="pixel-font text-yellow-400 shrink-0 mt-0.5">${String.fromCharCode(65 + idx)}.</span>
+                            <span class="text-slate-100">${opt}</span>
+                        </button>
+                    `;
+                });
+                html += `</div>`;
+                bodyEl.innerHTML = html;
+
+                const optBtns = bodyEl.querySelectorAll('.quiz-opt-btn');
+                optBtns.forEach(btn => {
+                    btn.onclick = (e) => {
+                        const chosenIdx = parseInt(e.currentTarget.getAttribute('data-idx'));
+                        if (chosenIdx === data.answer) {
+                            AudioFX.playCoin();
+                            this.score += 300;
+                            bodyEl.innerHTML = `
+                                <div class="p-4 bg-emerald-950/80 border-2 border-emerald-500 rounded-xl text-emerald-200 mb-3">
+                                    ✨ <strong class="pixel-font text-emerald-400">JAWABAN BENAR! (+300 PTS)</strong>
+                                </div>
+                                <p class="text-sm text-slate-300 leading-relaxed">${data.explanation}</p>
+                            `;
+                        } else {
+                            AudioFX.playHurt();
+                            bodyEl.innerHTML = `
+                                <div class="p-4 bg-red-950/80 border-2 border-red-500 rounded-xl text-red-200 mb-3">
+                                    ❌ <strong class="pixel-font text-red-400">JAWABAN SALAH!</strong>
+                                </div>
+                                <p class="text-sm text-slate-300 leading-relaxed">${data.explanation}</p>
+                            `;
+                        }
+                        this.updateHUD();
+
+                        actionsEl.innerHTML = '';
+                        const closeBtn = document.createElement('button');
+                        closeBtn.className = "pixel-font bg-yellow-400 hover:bg-yellow-300 text-slate-950 px-6 py-3 rounded-xl border-b-4 border-yellow-600 text-xs sm:text-sm cursor-pointer shadow-md";
+                        closeBtn.innerText = "LANJUTKAN GAME ➡️";
+                        closeBtn.onclick = () => {
+                            overlay.classList.add('hidden');
+                            this.gameState = 'PLAYING';
+                        };
+                        actionsEl.appendChild(closeBtn);
+                    };
+                });
+
+                overlay.classList.remove('hidden');
+            }
+
+            playerDie(reason = "Kamu jatuh ke dalam lubang!") {
+                AudioFX.playHurt();
+                this.lives--;
+                this.updateHUD();
+
+                if (this.lives <= 0) {
+                    this.gameState = 'GAMEOVER';
+                    document.getElementById('gameover-reason').innerText = reason;
+                    document.getElementById('gameover-screen').classList.remove('hidden');
+                } else {
+                    this.player.x = 80;
+                    this.player.y = 300;
+                    this.player.vx = 0;
+                    this.player.vy = 0;
+                    this.player.invulnerableTimer = 60;
+                }
+            }
+
+            completeLevel() {
+                AudioFX.playWin();
+                this.gameState = 'VICTORY';
+                const data = LEVEL_DATA[this.currentLevelIdx];
+                
+                document.getElementById('victory-title').innerText = `LEVEL ${data.level} SELESAI!`;
+                document.getElementById('victory-desc').innerText = `Hebat! Kamu telah menguasai: ${data.title}`;
+                document.getElementById('summary-score').innerText = this.score;
+
+                const nextBtn = document.getElementById('btn-next-level');
+                if (this.currentLevelIdx === LEVEL_DATA.length - 1) {
+                    nextBtn.innerText = "MENU UTAMA 🏠";
+                } else {
+                    nextBtn.innerText = "LANJUT LEVEL BERIKUTNYA ➡️";
+                }
+
+                document.getElementById('victory-screen').classList.remove('hidden');
+            }
+
+            update() {
+                if (this.gameState !== 'PLAYING') return;
+
+                // Horizontal movement
+                if (this.keys.left) {
+                    this.player.vx = -this.player.speed;
+                    this.player.facing = 'left';
+                } else if (this.keys.right) {
+                    this.player.vx = this.player.speed;
+                    this.player.facing = 'right';
+                } else {
+                    this.player.vx = 0;
+                }
+
+                // Physics update
+                this.player.vy += GRAVITY;
+                this.player.x += this.player.vx;
+                this.player.y += this.player.vy;
+
+                if (this.player.invulnerableTimer > 0) {
+                    this.player.invulnerableTimer--;
+                }
+
+                // Moving platforms update
+                this.platforms.forEach(p => {
+                    if (p.isMoving) {
+                        p.x += p.speed * p.dir;
+                        if (p.x > p.maxX || p.x < p.minX) {
+                            p.dir *= -1;
+                        }
+                    }
+                });
+
+                // Enemy AI update (Level 4 Bug)
+                this.enemies.forEach(e => {
+                    e.x += e.speed * e.dir;
+                    if (e.x > e.maxX || e.x < e.minX) {
+                        e.dir *= -1;
+                    }
+
+                    // Collision check
+                    if (this.player.invulnerableTimer === 0 && this.checkRectOverlap(this.player, e)) {
+                        // Stomp enemy head logic
+                        if (this.player.vy > 0 && this.player.y + this.player.height - this.player.vy <= e.y + 12) {
+                            AudioFX.playCoin();
+                            this.player.vy = -9;
+                            this.enemies = this.enemies.filter(item => item !== e);
+                            this.score += 250;
+                            this.updateHUD();
+                        } else {
+                            this.playerDie("Kamu menabrak Bug/Error HTML!");
+                        }
+                    }
+                });
+
+                // Spikes collision
+                this.spikes.forEach(s => {
+                    if (this.player.invulnerableTimer === 0 && this.checkRectOverlap(this.player, s)) {
+                        this.playerDie("Kamu tertusuk rintangan duri!");
+                    }
+                });
+
+                // Platform Collisions
+                this.player.isGrounded = false;
+                this.platforms.forEach(p => {
+                    if (
+                        this.player.x + this.player.width > p.x &&
+                        this.player.x < p.x + p.width &&
+                        this.player.y + this.player.height >= p.y &&
+                        this.player.y + this.player.height <= p.y + p.height + this.player.vy &&
+                        this.player.vy >= 0
+                    ) {
+                        this.player.y = p.y - this.player.height;
+                        this.player.vy = 0;
+                        this.player.isGrounded = true;
+
+                        if (p.isMoving) {
+                            this.player.x += p.speed * p.dir;
+                        }
+                    }
+                });
+
+                // Question Blocks trigger (Direct Quiz Trigger)
+                this.questionBlocks.forEach(b => {
+                    if (!b.hit && this.checkRectOverlap(this.player, b)) {
+                        b.hit = true;
+                        AudioFX.playCoin();
+                        this.openQuizModal(b.data);
+                    }
+                });
+
+                // Fall off pit screen
+                if (this.player.y > this.virtualHeight + 100) {
+                    this.playerDie("Kamu jatuh ke jurang!");
+                }
+
+                // Finish Flag Detection
+                if (this.checkRectOverlap(this.player, this.finishFlag)) {
+                    this.completeLevel();
+                }
+
+                // Dynamic Camera Center Track
+                const viewWidthVirtual = this.canvas.width / this.scaleFactor;
+                this.cameraX = this.player.x - viewWidthVirtual / 3;
+                if (this.cameraX < 0) this.cameraX = 0;
+                if (this.cameraX > this.levelWidth - viewWidthVirtual) {
+                    this.cameraX = this.levelWidth - viewWidthVirtual;
+                }
+            }
+
+            checkRectOverlap(r1, r2) {
+                return (
+                    r1.x < r2.x + r2.width &&
+                    r1.x + r1.width > r2.x &&
+                    r1.y < r2.y + r2.height &&
+                    r1.y + r1.height > r2.y
+                );
+            }
+
+            draw() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                const data = LEVEL_DATA[this.currentLevelIdx] || LEVEL_DATA[0];
+
+                // Background Sky Gradient
+                const bgGrad = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
+                bgGrad.addColorStop(0, data.bgGradient[0]);
+                bgGrad.addColorStop(1, data.bgGradient[1]);
+                this.ctx.fillStyle = bgGrad;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // If level is not yet active or loaded, render basic background only
+                if (this.gameState === 'START_MENU' && this.platforms.length === 0) {
+                    return;
+                }
+
+                this.ctx.save();
+                // Scaled coordinate space matching window resolution
+                this.ctx.scale(this.scaleFactor, this.scaleFactor);
+                this.ctx.translate(-this.cameraX, 0);
+
+                // Draw Parallax Clouds
+                this.ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+                [100, 450, 900, 1350, 1800].forEach(cx => {
+                    this.ctx.beginPath();
+                    this.ctx.arc(cx, 70, 28, 0, Math.PI * 2);
+                    this.ctx.arc(cx + 30, 60, 34, 0, Math.PI * 2);
+                    this.ctx.arc(cx + 60, 70, 28, 0, Math.PI * 2);
+                    this.ctx.fill();
+                });
+
+                // Draw Platforms
+                (this.platforms || []).forEach(p => {
+                    // Top Grass edge
+                    this.ctx.fillStyle = "#22c55e";
+                    this.ctx.fillRect(p.x, p.y, p.width, 7);
+
+                    // Dirt block body
+                    this.ctx.fillStyle = p.isMoving ? "#0284c7" : "#78350f";
+                    this.ctx.fillRect(p.x, p.y + 7, p.width, p.height - 7);
+
+                    // Border
+                    this.ctx.strokeStyle = "#27272a";
+                    this.ctx.lineWidth = 2;
+                    this.ctx.strokeRect(p.x, p.y, p.width, p.height);
+                });
+
+                // Draw Spikes
+                this.ctx.fillStyle = "#cbd5e1";
+                (this.spikes || []).forEach(s => {
+                    const count = Math.floor(s.width / 10);
+                    for (let i = 0; i < count; i++) {
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(s.x + i * 10, s.y + s.height);
+                        this.ctx.lineTo(s.x + i * 10 + 5, s.y);
+                        this.ctx.lineTo(s.x + (i + 1) * 10, s.y + s.height);
+                        this.ctx.fill();
+                    }
+                });
+
+                // Draw Question Blocks
+                (this.questionBlocks || []).forEach(b => {
+                    this.ctx.fillStyle = b.hit ? "#64748b" : "#f59e0b";
+                    this.ctx.fillRect(b.x, b.y, b.width, b.height);
+
+                    this.ctx.strokeStyle = "#451a03";
+                    this.ctx.lineWidth = 2;
+                    this.ctx.strokeRect(b.x, b.y, b.width, b.height);
+
+                    this.ctx.fillStyle = "#ffffff";
+                    this.ctx.font = "bold 18px 'Press Start 2P', monospace";
+                    this.ctx.fillText(b.hit ? "✓" : "?", b.x + 9, b.y + 25);
+                });
+
+                // Draw Enemies (Level 4 Bug)
+                (this.enemies || []).forEach(e => {
+                    // Red Bug creature body
+                    this.ctx.fillStyle = "#ef4444";
+                    this.ctx.beginPath();
+                    this.ctx.arc(e.x + 16, e.y + 16, 15, 0, Math.PI * 2);
+                    this.ctx.fill();
+
+                    // Antennae
+                    this.ctx.strokeStyle = "#0f172a";
+                    this.ctx.lineWidth = 2;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(e.x + 10, e.y + 5);
+                    this.ctx.lineTo(e.x + 4, e.y - 5);
+                    this.ctx.moveTo(e.x + 22, e.y + 5);
+                    this.ctx.lineTo(e.x + 28, e.y - 5);
+                    this.ctx.stroke();
+
+                    // Bug Eyes
+                    this.ctx.fillStyle = "#ffffff";
+                    this.ctx.fillRect(e.x + 8, e.y + 10, 5, 5);
+                    this.ctx.fillRect(e.x + 19, e.y + 10, 5, 5);
+                });
+
+                // Draw Finish Flag Pole
+                const flag = this.finishFlag;
+                if (flag) {
+                    this.ctx.fillStyle = "#94a3b8";
+                    this.ctx.fillRect(flag.x + 14, flag.y, 7, flag.height);
+
+                    // Flag banner
+                    this.ctx.fillStyle = "#10b981";
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(flag.x + 21, flag.y);
+                    this.ctx.lineTo(flag.x + 65, flag.y + 22);
+                    this.ctx.lineTo(flag.x + 21, flag.y + 44);
+                    this.ctx.fill();
+                }
+
+                // Draw Character Player
+                if (this.player.invulnerableTimer % 4 < 2) {
+                    const p = this.player;
+
+                    // Pants
+                    this.ctx.fillStyle = "#2563eb";
+                    this.ctx.fillRect(p.x + 6, p.y + 22, 22, 18);
+
+                    // Shirt
+                    this.ctx.fillStyle = "#dc2626";
+                    this.ctx.fillRect(p.x + 6, p.y + 11, 22, 13);
+
+                    // Face
+                    this.ctx.fillStyle = "#fef08a";
+                    this.ctx.fillRect(p.x + 8, p.y + 3, 18, 11);
+
+                    // Red Cap
+                    this.ctx.fillStyle = "#dc2626";
+                    this.ctx.fillRect(p.x + 4, p.y, 26, 6);
+
+                    // Eye
+                    this.ctx.fillStyle = "#0f172a";
+                    const eyeOffsetX = p.facing === 'right' ? 18 : 8;
+                    this.ctx.fillRect(p.x + eyeOffsetX, p.y + 5, 4, 4);
+                }
+
+                this.ctx.restore();
+            }
+
+            loop() {
+                this.update();
+                this.draw();
+                requestAnimationFrame(() => this.loop());
+            }
+        }
+
+        // Initialize game loop on load
+        window.onload = () => {
+            const game = new FullscreenGame();
+            game.openLevelSelectMenu();
+            game.loop();
+        };
+    </script>
+</body>
+</html>
